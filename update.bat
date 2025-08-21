@@ -1,25 +1,34 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: Messaggio di commit
+:: ---------- CONFIGURATION ----------
+:: Replace YOUR_USERNAME and YOUR_PAT with your GitHub username and Personal Access Token
+set GITHUB_USER=niccocadoni
+set GITHUB_PAT=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
+set REPO_NAME=niccocadoni/hhexport
+set BRANCH=main
 set COMMIT_MSG=Update hhexport files
+set OUTPUT_FILE=hhexport_links.txt
 
-:: Aggiunge solo i file nella cartella hhexport (anche quelli rimossi)
+:: ---------- SET REMOTE URL WITH PAT ----------
+git remote set-url origin https://%GITHUB_USER%:%GITHUB_PAT%@github.com/%REPO_NAME%.git
+
+:: ---------- ADD FILES ----------
 git add hhexport
 
-:: Ricava i file aggiunti o modificati (staged)
+:: ---------- GET FILES ADDED / MODIFIED ----------
 set FILES_ADDED=
 for /f "tokens=*" %%f in ('git diff --cached --name-only --diff-filter=AM -- hhexport') do (
     set FILES_ADDED=!FILES_ADDED! %%f
 )
 
-:: Ricava i file rimossi (staged)
+:: ---------- GET FILES REMOVED ----------
 set FILES_REMOVED=
 for /f "tokens=*" %%f in ('git diff --cached --name-only --diff-filter=D -- hhexport') do (
     set FILES_REMOVED=!FILES_REMOVED! %%f
 )
 
-:: Se non ci sono cambiamenti, mostra messaggio e lascia la console aperta
+:: ---------- NO CHANGES ----------
 if "%FILES_ADDED%"=="" if "%FILES_REMOVED%"=="" (
     echo.
     echo Nessun cambiamento trovato in hhexport.
@@ -28,32 +37,28 @@ if "%FILES_ADDED%"=="" if "%FILES_REMOVED%"=="" (
     exit /b 0
 )
 
-:: Commit & Push
+:: ---------- COMMIT & PUSH ----------
 git commit -m "%COMMIT_MSG%"
-git push origin main
+git push origin %BRANCH%
 
-:: Legge il dominio dal file CNAME
+:: ---------- READ DOMAIN FROM CNAME ----------
 set /p DOMAIN=<CNAME
 
-:: File di output
-set OUTPUT_FILE=hhexport_links.txt
-
-:: Aggiunge intestazione con data/ora se ci sono file aggiunti
+:: ---------- GENERATE LINKS FOR ADDED FILES ----------
 if not "%FILES_ADDED%"=="" (
     echo. >> %OUTPUT_FILE%
     echo ==== Aggiornamento del %date% %time% ==== >> %OUTPUT_FILE%
 )
 
-:: Scrive i link dei file aggiunti
 for %%f in (%FILES_ADDED%) do (
     set LINK=https://%DOMAIN%/%%f
     echo !LINK!
     echo !LINK! >> %OUTPUT_FILE%
 )
 
-:: Se ci sono file rimossi, ricrea temporaneamente il file senza quei link
+:: ---------- REMOVE LINKS OF DELETED FILES ----------
 if not "%FILES_REMOVED%"=="" (
-    echo. 
+    echo.
     echo Rimozione link relativi a file eliminati...
 
     copy "%OUTPUT_FILE%" "%OUTPUT_FILE%.tmp" >nul
