@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 :: ---------- CONFIGURATION ----------
 :: Replace YOUR_USERNAME and YOUR_PAT with your GitHub username and Personal Access Token
 set GITHUB_USER=niccocadoni
-set GITHUB_PAT=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
+set GITHUB_PAT=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
 set REPO_NAME=niccocadoni/hhexport
 set BRANCH=main
 set COMMIT_MSG=Update hhexport files
